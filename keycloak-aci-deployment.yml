@@ -1,0 +1,64 @@
+api-version: 2021-03-01
+location: canadacentral
+name: keycloaktest
+properties:
+  containers:
+    - name: keycloak
+      properties:
+        image: quay.io/keycloak/keycloak:latest
+        command: ["-b", "0.0.0.0", "-Dkeycloak.migration.action=import",
+         "-Dkeycloak.migration.provider=dir",
+          "-Dkeycloak.migration.dir=/opt/jboss/keycloak/realm-config",
+           "-Dkeycloak.migration.strategy=IGNORE_EXISTING",
+            "-Djboss.socket.binding.port-offset=1000"]        
+        ports:
+          - port: 8080
+            protocol: TCP
+        resources:
+          requests:
+            cpu: 1
+            memoryInGB: 1
+        volumes:
+          - ./realm-config:/opt/jboss/keycloak/realm-config
+          - ./keycloak-db:/opt/jboss/keycloak/standalone/data            
+        environmentVariables:
+          - name: KEYCLOAK_USER
+            value: 'YOURADMINUSERNAME'
+          - name: KEYCLOAK_PASSWORD
+            value: 'YOURADMINPASSWORD'
+          - name: PROXY_ADDRESS_FORWARDING
+            value: 'true'
+          - name: DB_VENDOR
+            value: 'H2'            
+    - name: caddy
+      properties:
+        image: caddy:latest
+        command:
+          [
+            'caddy',
+            'reverse-proxy',
+            '--from',
+            'keycloakuri.canadacentral.azurecontainer.io',
+            '--to',
+            'localhost:8080',
+          ]
+        ports:
+          - port: 80
+            protocol: TCP
+          - port: 443
+            protocol: TCP
+        resources:
+          requests:
+            cpu: 0.5
+            memoryInGB: 0.5
+  ipAddress:
+    ports:
+      - port: 80
+        protocol: TCP
+      - port: 443
+        protocol: TCP
+    type: Public
+    dnsNameLabel: keycloakuri
+  osType: Linux
+tags: null
+type: Microsoft.ContainerInstance/containerGroups

@@ -1,0 +1,259 @@
+﻿@model Apim.WebClient.Models.ApiViewModel
+
+@{
+    ViewData["Title"] = "TryApi";
+}
+
+<h1>Test de API</h1>
+
+<h4></h4>
+<hr />
+<div class="row">
+    <div class="col-md-8">
+        <div  role="alert" id="infoMessage">
+        
+       </div>
+        <form id="friendform">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Url" class="control-label"></label>
+                <input asp-for="Url" id="url" class="form-control" />
+                <span asp-validation-for="Url" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Method" class="control-label"></label>
+                <select asp-for="Method" class="form-control">
+                    <option>POST</option>
+                    <option>GET</option>
+                </select>
+                <span asp-validation-for="Method" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Subscriptionkey" class="control-label"></label>
+                <input asp-for="Subscriptionkey" class="form-control" type="password" />
+                <span asp-validation-for="Subscriptionkey" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <div>
+                    <label asp-for="Token" class="control-label"></label>
+                    <input id="Token" asp-for="Token" class="form-control" value="@ViewBag.token" />
+                    <span asp-validation-for="Token" class="text-danger"></span>
+                 </div>
+                 <!--------------------------------------------------------------------------->
+                <p>
+                  <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                    Detail du Token
+                  </button>
+                </p>
+                <div class="collapse" id="collapseExample">
+                    <div class="card card-body">
+                        <div>
+                            <label class="control-label">Date d'expiration</label>
+                            <input id="Expires" class="form-control" value="@ViewBag.Expires" />
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleFormControlTextarea1">Id token</label>
+                            <textarea class="form-control" id="idToken" rows="3">@ViewBag.idToken</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleFormControlTextarea1">refresh token</label>
+                            <textarea class="form-control" id="RefreshToken" rows="3">@ViewBag.refresh_token</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleFormControlTextarea1">Certificat</label>
+                            <textarea class="form-control" id="RefreshToken" rows="3">@ViewBag.cert</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!--------------------------------------------------------------------------->
+            </div>
+
+            <div class="btn-group" role="group" aria-label="Basic example">
+                <button type="button" class="btn btn-primary" id="btnsubmit">Tester Api</button>
+                <button type="button" class="btn btn-primary" id="btnrefreshToken">réactualiser le Token</button>
+                <button type="button" class="btn-primary" id="btnrevokeToken">revoquer le Token</button>
+                <button type="button" class="btn-primary" id="btnapirest">Api rest</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<div style="width: 600px; height: 100px; overflow-y: scroll;" id="result">
+
+</div>
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script type="text/javascript">
+    
+        $(function () {
+            $('#RefreshToken').attr('readonly', true);
+            $('#idToken').attr('readonly', true);
+            $('#infoMessage').hide();
+        });
+
+        
+
+        $(function () {
+
+            $("#btnsubmit").click(function () {
+                if($("#url").val()==""){
+                        $('#infoMessage').show();
+                        $("#infoMessage").addClass("alert").addClass("alert-success");
+                        $("#infoMessage").html("Veuillez saisir url s'il vous plait")
+                        $("#infoMessage").fadeOut(7000)
+                } else{
+
+                 var valdata = $("#friendform").serialize();
+                $.ajax({
+                    type: "POST",
+                    url: "/Home/TryApiSend",
+                    data: valdata,
+                    success: function (response) {
+                        $("#result").html(JSON.stringify(response.result, undefined, 2));
+                        if ((response.infoMessage != "")){
+                        $('#infoMessage').show();
+                        $("#infoMessage").addClass("alert").addClass("alert-danger");
+                        $("#infoMessage").html(response.infoMessage)
+                        $("#infoMessage").fadeOut(7000)
+                        }
+                      
+                        if ((response.statusCode != "200")) {
+                            $('#infoMessage').show();
+                            $("#infoMessage").addClass("alert").addClass("alert-danger");
+                            $("#infoMessage").html(response.result)
+                            $("#infoMessage").fadeOut(7000)
+                        }
+
+
+                    },
+                    failure: function (response) {
+      
+                        $('#infoMessage').show();
+                        $("#infoMessage").addClass("alert").addClass("alert-danger");
+                        $("#infoMessage").html(response.infoMessage)
+                        $("#infoMessage").fadeOut(7000)
+                    },
+                    error: function (response) {
+                        $('#infoMessage').show();
+                        $("#infoMessage").addClass("alert").addClass("alert-danger");
+                        $("#infoMessage").html(response.infoMessage)
+                        $("#infoMessage").fadeOut(7000)
+                    }
+                });
+                }
+
+
+            });
+        });
+
+
+        $(function () {
+            $("#btnrefreshToken").click(function () {
+                var valdata = $("#friendform").serialize();
+                $.ajax({
+                    type: "POST",
+                    url: "/Home/refreshAccessToken",
+                    data: valdata,
+                    success: function (response) {
+                        //alert(response.expirees)
+                        $("#Token").val(response.accessToken.access_token)
+                    
+                        $("#RefreshToken").val(response.accessToken.refresh_token)
+                        $("#Expires").val(response.expirees)            
+                        $('#infoMessage').show();
+                        $("#infoMessage").addClass("alert").addClass("alert-success");
+                        $("#infoMessage").html(response.infoMessage)
+                        $("#infoMessage").fadeOut(7000)
+
+                    },
+                    failure: function (response) {
+                        alert(response.responseText);
+                    },
+                    error: function (response) {
+                        alert(response.responseText);
+                    }
+                });
+            });
+        });
+
+
+
+            $(function () {
+            $("#btnrevokeToken").click(function () {
+                var valdata = $("#friendform").serialize();
+                $.ajax({
+                    type: "POST",
+                    url: "/Home/revoke",
+                    data: valdata,
+                    success: function (response) {
+                        //$("#result").html(JSON.stringify(response, undefined, 2));
+                         $('#infoMessage').show();
+                         $("#infoMessage").addClass("alert").addClass("alert-success");
+                         $("#infoMessage").html(response.infoMessage)
+                         $("#infoMessage").fadeOut(7000)
+                    },
+                    failure: function (response) {
+                        alert(response.responseText);
+                    },
+                    error: function (response) {
+                        alert(response.responseText);
+                    }
+                });
+            });
+            });
+
+
+
+        $(function () {
+
+            $("#btnapirest").click(function () {
+                var valdata = $("#friendform").serialize();
+                $.ajax({
+                    type: "POST",
+                    url: "/Home/TryApiSend3",
+                    data: valdata,
+                    success: function (response) {
+                        $("#result").html(JSON.stringify(response.result, undefined, 2));
+                        if ((response.infoMessage != "")) {
+                            $('#infoMessage').show();
+                            $("#infoMessage").addClass("alert").addClass("alert-danger");
+                            $("#infoMessage").html(response.infoMessage)
+                            $("#infoMessage").fadeOut(7000)
+                        }
+
+                        if ((response.statusCode != "200")) {
+                            $('#infoMessage').show();
+                            $("#infoMessage").addClass("alert").addClass("alert-danger");
+                            $("#infoMessage").html(response.result)
+                            $("#infoMessage").fadeOut(7000)
+                        }
+
+
+                    },
+                    failure: function (response) {
+
+                        $('#infoMessage').show();
+                        $("#infoMessage").addClass("alert").addClass("alert-danger");
+                        $("#infoMessage").html(response.infoMessage)
+                        $("#infoMessage").fadeOut(7000)
+                    },
+                    error: function (response) {
+                        $('#infoMessage').show();
+                        $("#infoMessage").addClass("alert").addClass("alert-danger");
+                        $("#infoMessage").html(response.infoMessage)
+                        $("#infoMessage").fadeOut(7000)
+                    }
+                });
+
+
+            });
+        });
+    </script>
+}

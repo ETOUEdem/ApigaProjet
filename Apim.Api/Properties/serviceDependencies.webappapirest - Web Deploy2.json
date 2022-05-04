@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "apis1": {
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.ApiManagement/service/apiedmond/apis/62684ff2a1d9d64eb56d9fdc",
+      "type": "apis.azure"
+    }
+  }
+}

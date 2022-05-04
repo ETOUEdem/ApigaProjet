@@ -1,0 +1,154 @@
+﻿@model Apim.WebClient.Models.ApiParametersModel
+
+<h1>ApiUsingOai3Import</h1>
+
+<div id="default-tree"></div>
+<div role="alert" id="infoMessage" class="alert">
+
+</div>
+<form id="ApiUsingOai3Importform">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-group">
+        <label class="control-label">apiName </label>
+        <input asp-for="apiName" class="form-control" type="text" />
+        <span class="text-danger"></span>
+    </div>
+    <button type="button" class="btn btn-primary" id="btnsubmit">Run </button>
+    <div class="form-group">
+        <label class="control-label">serviceName</label>
+        <input asp-for="serviceName" class="form-control" type="text" value="@ViewBag.serviceName" />
+        <span class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label">resourceGroupName</label>
+        <input asp-for="resourceGroupName" class="form-control" type="text" value="@ViewBag.resourceGroupName" />
+        <span class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label class="control-label">api-version</label>
+        <input asp-for="apiVersion" class="form-control" type="text" value="@ViewBag.apiversion" />
+        <span class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label class="control-label">Body</label>
+        <textarea id="bodyJson" name="bodyJson" autocomplete="off">@ViewBag.bodyJson</textarea>
+    </div>
+
+
+
+    <div class="btn-group" role="group" aria-label="Basic example">
+
+
+    </div>
+
+</form>
+
+
+
+<style type="text/css">
+    body {
+        margin: 0 100px;
+        font-family: sans-serif;
+    }
+
+    p.options label {
+        margin-right: 10px;
+    }
+
+    p.options input[type=checkbox] {
+        vertical-align: middle;
+    }
+
+    textarea#bodyJson {
+        width: 100%;
+        height: 200px;
+    }
+
+    pre#json-renderer {
+        border: 1px solid #aaa;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script type="text/javascript">
+
+        $(function () {
+            $('#RefreshToken').attr('readonly', true);
+            $('#idToken').attr('readonly', true);
+            $('#infoMessage').hide();
+        });
+
+
+
+        $(function () {
+
+            $("#btnsubmit").click(function () {
+                {
+
+                    var valdata = $("#ApiUsingOai3Importform").serialize();
+                    $.ajax({
+                        type: "POST",
+                        url: "/ApiRestMgmnt/CreateApiUsingOai3Import",
+                        data: valdata,
+                        success: function (response) {
+                            //alert(response.ReasonPhrase)
+                            //alert(response.statusCode)
+
+                            //$("#result").html(JSON.stringify(response.result, undefined, 2));
+                            //if ((response.infoMessage != "")) {
+                            //    $('#infoMessage').show();
+                            //    $("#infoMessage").addClass("alert").addClass("alert-danger");
+                            //    $("#infoMessage").html(response.infoMessage)
+                            //    $("#infoMessage").fadeOut(7000)
+                            //}
+
+                            if ((response.statusCode == "202")) {
+                                $('#infoMessage').show();
+                                $("#infoMessage").removeClass("alert-danger");
+                                $("#infoMessage").addClass("alert").addClass("alert-success");
+                                $("#infoMessage").html("Importation reussie")
+                                $("#infoMessage").fadeOut(7000)
+                            } else {
+                                $('#infoMessage').show();
+                                $("#infoMessage").removeClass("alert-success");
+                                $("#infoMessage").addClass("alert").addClass("alert-danger");
+                                $("#infoMessage").html("échec")
+                                $("#infoMessage").fadeOut(7000)
+                            }
+
+                        },
+                        failure: function (response) {
+
+                            $('#infoMessage').show();
+                            $("#infoMessage").addClass("alert").addClass("alert-danger");
+                            $("#infoMessage").html(response.infoMessage)
+                            $("#infoMessage").fadeOut(7000)
+                        },
+                        error: function (response) {
+                            $('#infoMessage').show();
+                            $("#infoMessage").addClass("alert").addClass("alert-danger");
+                            $("#infoMessage").html(response.infoMessage)
+                            $("#infoMessage").fadeOut(7000)
+                        }
+                    });
+                }
+
+
+            });
+        });
+
+
+
+
+
+
+
+
+
+
+
+    </script>
+}

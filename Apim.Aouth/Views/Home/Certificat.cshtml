@@ -1,0 +1,18 @@
+﻿@{
+    Layout = "_LayoutFullPage";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="CheckCertificat">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label  class="control-label">Entrer la clé pour avoir acces au serveur OAuth</label>
+                <input name="Certificat"  class="form-control" />          
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Envoyer" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+ </div>
