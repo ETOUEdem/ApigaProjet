@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 
 namespace Apim.WebClient.Controllers
 {
-  
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

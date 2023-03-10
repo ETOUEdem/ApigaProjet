@@ -16,9 +16,15 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+
+
+using System.Net.Http;
+using System.Security.Authentication;
+using System.Net;
 
 namespace Apim.WebClient
 {
@@ -34,8 +40,14 @@ namespace Apim.WebClient
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var proxy = new HttpClientHandler
+            {
+                UseProxy = true,
+                Proxy = null,
+                DefaultProxyCredentials = CredentialCache.DefaultNetworkCredentials
+            };
             //**************************/
-
+            Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
 
             //services.AddCertificateForwarding(options =>
             //{
@@ -47,7 +59,7 @@ namespace Apim.WebClient
             //    };
             //});
             //****************************/
-
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
             //IdentityModelEventSource.ShowPII = true;
             services.AddControllersWithViews();
             services.AddMvc();
@@ -60,12 +72,12 @@ namespace Apim.WebClient
                 // OpenId authentication
                 options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
             })
-     .AddCookie("Cookies");
-    /* .AddOpenIdConnect(options =>
+     .AddCookie("Cookies")
+     .AddOpenIdConnect(options =>
      {
          // URL of the Keycloak server
          //options.Authority = "http://localhost:8080/auth/realms/master";
-         options.Authority = Configuration["Authority"];
+       //  options.Authority = Configuration["Authority"];
            //options.Authority = "http://keycloakvm.azure-api.net:8080/auth/realms/master";
           
          // Client configured in the Keycloak
@@ -78,12 +90,41 @@ namespace Apim.WebClient
          // Client secret shared with Keycloak
          options.ClientSecret = Configuration["ClientSecret"];
          options.GetClaimsFromUserInfoEndpoint = true;
+        
+         options.MetadataAddress = "https://webappkeycloak.azurewebsites.net/auth/realms/master/.well-known/openid-configuration";
+         /* options.BackchannelHttpHandler = new HttpClientHandler
+          {
+              ServerCertificateCustomValidationCallback =
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+          };*/
+         //ou
 
+         /*   options.BackchannelHttpHandler = new HttpClientHandler
+            {
+                UseProxy = false,
+                UseDefaultCredentials = true
+            };*/
+         // ou
+
+         //options.BackchannelHttpHandler = GetHandler();
+         //ou
+         options.BackchannelHttpHandler = proxy;
          // OpenID flow to use
+
          options.ResponseType = OpenIdConnectResponseType.CodeIdToken;
      }
      
-     );*/
+     );
+        }
+
+
+        private static HttpClientHandler GetHandler()
+        {
+            var handler = new HttpClientHandler();
+            handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+            handler.SslProtocols = SslProtocols.Tls12;
+            handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
+            return handler;
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
